@@ -143,7 +143,6 @@ If you haven't set up an X API yet:
 5. Add these to your `.env` file.
 
 ## Future Updates
-- **Affiliate links** will be added for tools recommended in this guide.
 - More deployment options may be introduced based on user feedback.
 
 ## Contributions
