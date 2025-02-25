@@ -5,12 +5,12 @@ Here's a Python bot that automatically detects and blocks spam and bot accounts 
 
 ## Features
 - **Scans interactions** (likes, comments, follows) on your X account.
-- **Analyzes accounts** for bot-like behavior.
+- **Analyzes accounts** for bot-like behavior using advanced detection.
 - **Automatically blocks detected bot accounts.**
-- **Logs blocked accounts** for review.
-- **Designed to run locally or on cloud services.**
-
-**⚠ IMPORTANT: Do not share your `.env` file. Use `.env.example` as a reference!**
+- **Logs blocked accounts** for review in `bot_blocker.log` and `blocked_users_log.csv`.
+- **Uses rate limit handling** to prevent API bans.
+- **Scheduled to run every 2 hours automatically.**
+- **Designed to run locally, on cloud services, or n8n.**
 
 ## Setup Instructions
 
@@ -63,10 +63,7 @@ If you need to install or update Python, download it from [python.org](https://w
    ACCESS_TOKEN=your_access_token_here
    ACCESS_SECRET=your_access_secret_here
    ```
-**Why use a `.env` file?**
-- Keeps API keys secure when hosting publicly.
-- Prevents accidental exposure in GitHub.
-- Always add `.env` to `.gitignore` to keep it private.
+3. **Use `.env.example` as a reference** (do not commit real API keys).
 
 ### 7. Run the Bot
 ```bash
@@ -107,22 +104,18 @@ Since n8n supports HTTP requests and Python scripts, you have a couple of option
 - n8n instance (self-hosted or cloud)
 - Basic knowledge of n8n workflows
 
-## Testing the Bot
-### Local Testing
-✅ Run the bot manually:
-```bash
-python x_bot_blocker.py
-```
-✅ Check logs to see which accounts were detected.
+## Branching, Merging & Protection Rules
+### **🚀 GitHub Branch Protection Rules Implemented**
+To ensure code quality and security:
+- **No direct commits to `main`** → All changes require pull requests.
+- **Pull requests must be approved** before merging.
+- **Signed commits are required** to verify authorship.
+- **Force pushing is blocked** to prevent history overwrites.
+- **Merge methods allowed** → Only **squash merging** (keeps history clean).
+- **Conversations must be resolved** before merging.
 
-### Cloud Testing
-✅ Deploy to **Railway.app** or **Replit**.
-✅ Run logs to verify behavior.
-
-## Choosing the Right Deployment Option
-🚀 **For an always-running bot** → Use **Railway.app** or **Replit**.
-💻 **For manual execution** → Run locally as needed.
-⚡ **For scheduled automation** → Use **GitHub Actions**.
+### **🚀 Contribution Guidelines**
+We encourage contributions! Read our [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ## Troubleshooting
 ### Common Errors & Fixes
@@ -144,14 +137,20 @@ If you haven't set up an X API yet:
 4. Retrieve your **API keys and access tokens** from the Developer Dashboard.
 5. Add these to your `.env` file.
 
-## Future Updates
-- More deployment options may be introduced based on user feedback.
+## Future Updates & Monetization
+🚀 This is the **last free version** of the X Bot Blocker. Future updates may be **paid access only**.
+- Advanced AI filtering.
+- Custom blocklist features.
+- Rate limit optimization.
+- Multi-account management.
+- Automated bot reporting to X.
 
 ## Contributions
 Feel free to fork this repository and submit pull requests for improvements!
 
 ## License
 [MIT License](LICENSE)
+
 
 ## Contact
 For support or questions, please:
