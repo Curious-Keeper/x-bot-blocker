@@ -1,6 +1,6 @@
 # X Bot Blocker
 
-Tired of all the random cornbots auto-liking your post or comments, yep, me too. 
+Tired of all the random 🌽bots auto-liking your post or comments, yep, me too. 
 Here's a Python bot that automatically detects and blocks spam and bot accounts interacting with your X (Twitter) posts.
 
 ## Features
