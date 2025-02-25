@@ -10,6 +10,8 @@ Here's a Python bot that automatically detects and blocks spam and bot accounts 
 - **Logs blocked accounts** for review.
 - **Designed to run locally or on cloud services.**
 
+**⚠ IMPORTANT: Do not share your `.env` file. Use `.env.example` as a reference!**
+
 ## Setup Instructions
 
 ### 1. Prerequisites
