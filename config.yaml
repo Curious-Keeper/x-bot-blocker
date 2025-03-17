@@ -1,0 +1,165 @@
+# Bot Configuration Settings
+
+# API Settings
+api:
+  rate_limit:
+    max_blocks_per_day: 1000
+    cooldown_period: 60  # seconds
+    retry_delay: 5  # seconds
+
+# Bot Detection Settings
+detection:
+  min_account_age: 30  # days
+  min_followers: 10
+  max_following_ratio: 10
+  min_tweets: 5
+  bot_probability_threshold: 0.7
+
+# Scanning Settings
+scanning:
+  mentions_count: 200
+  followers_count: 200
+  likes_count: 200
+  scan_interval: 60  # minutes
+
+# Rate Limit Settings
+rate_limit:
+  max_blocks_per_day: 1000
+  cooldown_period: 60  # seconds
+
+# Behavior Analysis Settings
+behavior_analysis:
+  min_interaction_interval: 1  # seconds
+  max_interactions_per_hour: 50
+  suspicious_pattern_threshold: 0.8
+  content_similarity_threshold: 0.9
+  max_identical_tweets: 3
+  max_following_ratio: 10
+  max_followers_per_day: 100
+  unusual_hours:
+    start: 2  # 2 AM
+    end: 6    # 6 AM
+  activity_thresholds:
+    max_active_hours: 20
+    min_active_hours: 3
+
+# Monitoring Settings
+monitoring:
+  enabled: true
+  check_interval: 300  # 5 minutes
+  retention_days: 30
+  thresholds:
+    system:
+      cpu_warning: 70
+      cpu_critical: 85
+      memory_warning: 75
+      memory_critical: 90
+      disk_warning: 80
+      disk_critical: 90
+    performance:
+      response_time_warning: 1.5  # seconds
+      response_time_critical: 2.0
+      error_rate_warning: 5  # percentage
+      error_rate_critical: 10
+    detection:
+      false_positive_warning: 0.5  # percentage
+      false_positive_critical: 1.0
+      accuracy_warning: 95  # percentage
+      accuracy_critical: 90
+    api:
+      rate_limit_warning: 75  # percentage of limit used
+      rate_limit_critical: 90
+      failed_requests_warning: 5  # percentage
+      failed_requests_critical: 10
+  alerts:
+    enabled: true
+    channels:
+      slack:
+        enabled: true
+        webhook_url: "${SLACK_WEBHOOK_URL}"
+        channel: "#bot-blocker-alerts"
+        username: "Bot Blocker Monitor"
+        icon_emoji: ":robot_face:"
+      email:
+        enabled: false
+        smtp_server: ""
+        smtp_port: 587
+        sender: ""
+        recipients: []
+    levels:
+      info:
+        color: "#2196F3"
+        notify: false
+      warning:
+        color: "#FFC107"
+        notify: true
+      critical:
+        color: "#F44336"
+        notify: true
+    cooldown:
+      warning: 1800  # 30 minutes
+      critical: 300   # 5 minutes
+  metrics:
+    collection:
+      enabled: true
+      interval: 60  # 1 minute
+      batch_size: 100
+    export:
+      format: "csv"
+      directory: "metrics"
+      interval: 3600  # 1 hour
+    dashboard:
+      enabled: true
+      update_interval: 300  # 5 minutes
+      port: 8080
+
+# Reporting Settings
+reporting:
+  directory: reports
+  retention_days: 90
+  formats:
+    - json
+    - csv
+  schedule:
+    weekly:
+      enabled: true
+      day: monday
+      time: "00:00"
+    monthly:
+      enabled: true
+      day: 1
+      time: "00:00"
+  metrics:
+    blocks:
+      enabled: true
+      threshold: 1000
+    accuracy:
+      enabled: true
+      threshold: 0.95
+    error_rate:
+      enabled: true
+      threshold: 0.05
+    resource_usage:
+      enabled: true
+      thresholds:
+        cpu: 80
+        memory: 80
+        disk: 80
+  export:
+    enabled: true
+    format: json
+    compression: true
+    batch_size: 1000
+    retention_days: 90
+
+# Whitelist/Blacklist
+lists:
+  whitelist: []  # List of usernames to never block
+  blacklist: []  # List of usernames to always block
+
+# Logging Settings
+logging:
+  level: "INFO"
+  file: "bot_blocker.log"
+  max_size: 10485760  # 10MB
+  backup_count: 5 

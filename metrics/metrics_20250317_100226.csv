@@ -1,0 +1,2 @@
+api_calls,blocks_count,detection_accuracy,errors,failed_requests,false_positives,resource_usage_cpu,resource_usage_disk,resource_usage_memory,response_times,start_time,system_uptime,timestamp
+0,0,1.0,[],0,0,0.0,31.4,47.0,[],2025-03-17 10:02:26.436265,72861.31275558472,2025-03-17T10:02:26.441734
