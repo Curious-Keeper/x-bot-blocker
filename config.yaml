@@ -8,24 +8,83 @@ api:
     retry_delay: 5  # seconds
 
 # Bot Detection Settings
-detection:
-  min_account_age: 30  # days
+bot_detection:
+  # Thresholds
+  min_account_age_days: 30
   min_followers: 10
   max_following_ratio: 10
   min_tweets: 5
   bot_probability_threshold: 0.7
 
-# Scanning Settings
-scanning:
-  mentions_count: 200
-  followers_count: 200
-  likes_count: 200
-  scan_interval: 60  # minutes
+  # Image Analysis Settings
+  image_analysis:
+    enabled: true
+    min_image_size: 100
+    max_image_size: 1000
+    face_detection_threshold: 0.6
+    edge_detection_threshold: 100
+    suspicious_face_count: [0, 2]  # Range of suspicious face counts
+    min_edge_density: 0.01
+    max_edge_density: 0.5
+    min_unique_colors: 10
+    max_unique_colors: 1000
+    image_download_timeout: 10  # seconds
 
-# Rate Limit Settings
-rate_limit:
-  max_blocks_per_day: 1000
-  cooldown_period: 60  # seconds
+  # Spam word patterns
+  spam_words:
+    - "hot"
+    - "dm"
+    - "onlyfans"
+    - "porn"
+    - "xxx"
+    - "adult"
+    - "escort"
+    - "dating"
+    - "follow back"
+    - "follow me"
+    - "check my bio"
+    - "link in bio"
+    - "click here"
+    - "free"
+    - "promo"
+    - "discount"
+    - "offer"
+    - "deal"
+    - "sale"
+    - "crypto"
+    - "bitcoin"
+    - "investment"
+    - "earn money"
+    - "make money"
+    - "work from home"
+    - "passive income"
+    - "get rich"
+    - "millionaire"
+    - "wealth"
+
+  # Suspicious username patterns (regex)
+  suspicious_patterns:
+    - "^[0-9]+$"  # All numbers
+    - "^[a-zA-Z]+[0-9]+$"  # Letters followed by numbers
+    - "^[0-9]+[a-zA-Z]+$"  # Numbers followed by letters
+    - ".*bot.*"  # Contains "bot"
+    - ".*spam.*"  # Contains "spam"
+    - ".*fake.*"  # Contains "fake"
+    - ".*follow.*back.*"  # Contains "follow back"
+    - ".*dm.*"  # Contains "dm"
+    - ".*promo.*"  # Contains "promo"
+    - ".*crypto.*"  # Contains "crypto"
+
+  # URL patterns to detect in descriptions
+  url_patterns:
+    - "https?://(?:www\\.)?bit\\.ly/\\w+"  # Bitly links
+    - "https?://(?:www\\.)?t\\.co/\\w+"  # Twitter's t.co links
+    - "https?://(?:www\\.)?goo\\.gl/\\w+"  # Google's goo.gl links
+    - "https?://(?:www\\.)?tinyurl\\.com/\\w+"  # TinyURL links
+    - "https?://(?:www\\.)?cutt\\.ly/\\w+"  # Cutt.ly links
+    - "https?://(?:www\\.)?adf\\.ly/\\w+"  # AdFly links
+    - "https?://(?:www\\.)?linktr\\.ee/\\w+"  # Linktree links
+    - "https?://(?:www\\.)?bio\\.link/\\w+"  # Bio.link links
 
 # Behavior Analysis Settings
 behavior_analysis:
@@ -112,6 +171,18 @@ monitoring:
       enabled: true
       update_interval: 300  # 5 minutes
       port: 8080
+
+# Scanning Settings
+scanning:
+  # Number of items to fetch per scan
+  mentions_count: 200
+  followers_count: 200
+  likes_count: 200
+  
+  # Scan frequency (in minutes)
+  scan_interval: 60
+  max_retries: 3
+  timeout: 30
 
 # Reporting Settings
 reporting:
