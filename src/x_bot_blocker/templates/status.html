@@ -121,6 +121,7 @@
 <body>
     <div class="container">
         <div class="header">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="X Bot Blocker Logo" style="width: 150px; height: auto; margin-bottom: 20px;">
             <h1>X Bot Blocker Status</h1>
             <div>
                 <span class="status-indicator {{ 'status-running' if status == 'running' else 'status-stopped' }}"></span>

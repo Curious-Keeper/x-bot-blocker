@@ -1,11 +1,22 @@
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, url_for
 import psutil
 import os
 from datetime import datetime
 import json
+from functools import lru_cache
+import time
 
-app = Flask(__name__)
+# Get the directory where this file is located
+current_dir = os.path.dirname(os.path.abspath(__file__))
+template_dir = os.path.join(current_dir, 'templates')
+static_dir = os.path.join(current_dir, 'static')
 
+app = Flask(__name__, 
+           template_folder=template_dir,
+           static_folder=static_dir)
+
+# Cache metrics for 5 seconds
+@lru_cache(maxsize=1)
 def get_bot_process():
     """Get the bot process if it's running"""
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
@@ -16,6 +27,8 @@ def get_bot_process():
             pass
     return None
 
+# Cache logs for 10 seconds
+@lru_cache(maxsize=1)
 def read_recent_logs():
     """Read recent logs from the bot's log file"""
     log_file = os.getenv('LOG_FILE', 'bot_blocker.log')
@@ -26,6 +39,8 @@ def read_recent_logs():
     except Exception:
         return []
 
+# Cache metrics for 5 seconds
+@lru_cache(maxsize=1)
 def get_bot_metrics():
     """Get current bot metrics"""
     metrics_file = 'data/metrics.json'
@@ -41,18 +56,38 @@ def get_bot_metrics():
             'errors': []
         }
 
+# Cache process info for 5 seconds
+@lru_cache(maxsize=1)
+def get_process_info():
+    """Get cached process information"""
+    bot_process = get_bot_process()
+    if not bot_process:
+        return {
+            'cpu_percent': 0,
+            'memory_percent': 0,
+            'uptime': 0
+        }
+    
+    try:
+        return {
+            'cpu_percent': bot_process.cpu_percent(interval=1.0),  # Use interval to reduce CPU usage
+            'memory_percent': bot_process.memory_percent(),
+            'uptime': (datetime.now() - datetime.fromtimestamp(bot_process.create_time())).total_seconds()
+        }
+    except Exception:
+        return {
+            'cpu_percent': 0,
+            'memory_percent': 0,
+            'uptime': 0
+        }
+
 @app.route('/')
 def index():
     """Serve the status dashboard"""
-    bot_process = get_bot_process()
+    process_info = get_process_info()
     recent_logs = read_recent_logs()
     metrics = get_bot_metrics()
-    
-    process_info = {
-        'cpu_percent': bot_process.cpu_percent() if bot_process else 0,
-        'memory_percent': bot_process.memory_percent() if bot_process else 0,
-        'uptime': (datetime.now() - datetime.fromtimestamp(bot_process.create_time())).total_seconds() if bot_process else 0
-    }
+    bot_process = get_bot_process()
     
     return render_template('status.html',
                          status='running' if bot_process else 'stopped',
@@ -66,11 +101,12 @@ def get_status():
     bot_process = get_bot_process()
     recent_logs = read_recent_logs()
     metrics = get_bot_metrics()
+    process_info = get_process_info()
     
     return jsonify({
         'status': 'running' if bot_process else 'stopped',
         'pid': bot_process.info['pid'] if bot_process else None,
-        'uptime': (datetime.now() - datetime.fromtimestamp(bot_process.create_time())).total_seconds() if bot_process else 0,
+        'uptime': process_info['uptime'],
         'recent_logs': recent_logs,
         'metrics': metrics,
         'timestamp': datetime.now().isoformat()
@@ -87,29 +123,21 @@ def get_health():
             'timestamp': datetime.now().isoformat()
         })
     
-    # Get process metrics
-    try:
-        cpu_percent = bot_process.cpu_percent()
-        memory_percent = bot_process.memory_percent()
-        
-        return jsonify({
-            'status': 'healthy',
-            'process': {
-                'pid': bot_process.info['pid'],
-                'cpu_percent': cpu_percent,
-                'memory_percent': memory_percent,
-                'uptime': (datetime.now() - datetime.fromtimestamp(bot_process.create_time())).total_seconds()
-            },
-            'timestamp': datetime.now().isoformat()
-        })
-    except Exception as e:
-        return jsonify({
-            'status': 'unhealthy',
-            'reason': str(e),
-            'timestamp': datetime.now().isoformat()
-        })
+    process_info = get_process_info()
+    
+    return jsonify({
+        'status': 'healthy',
+        'process': {
+            'pid': bot_process.info['pid'],
+            'cpu_percent': process_info['cpu_percent'],
+            'memory_percent': process_info['memory_percent'],
+            'uptime': process_info['uptime']
+        },
+        'timestamp': datetime.now().isoformat()
+    })
 
 if __name__ == '__main__':
     # Get port from environment or use default
     port = int(os.getenv('STATUS_SERVER_PORT', 8080))
-    app.run(host='0.0.0.0', port=port) 
+    # Use threaded=False to reduce CPU usage
+    app.run(host='0.0.0.0', port=port, threaded=False) 

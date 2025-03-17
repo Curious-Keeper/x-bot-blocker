@@ -6,6 +6,11 @@ from datetime import datetime
 
 class ConfigManager:
     def __init__(self, config_path: str = "config.yaml"):
+        # Get the project root directory (two levels up from this file)
+        self.project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        # Convert config_path to absolute path if it's relative
+        if not os.path.isabs(config_path):
+            config_path = os.path.join(self.project_root, config_path)
         self.config_path = config_path
         self.config: Dict[str, Any] = {}
         self.last_modified: float = 0
@@ -18,7 +23,7 @@ class ConfigManager:
                 with open(self.config_path, 'r') as f:
                     self.config = yaml.safe_load(f)
                 self.last_modified = os.path.getmtime(self.config_path)
-                logging.info("Configuration loaded successfully")
+                logging.info(f"Configuration loaded successfully from {self.config_path}")
             else:
                 logging.error(f"Configuration file not found: {self.config_path}")
                 raise FileNotFoundError(f"Configuration file not found: {self.config_path}")

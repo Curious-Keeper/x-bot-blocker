@@ -111,8 +111,8 @@ monitoring:
   retention_days: 30
   thresholds:
     system:
-      cpu_warning: 70
-      cpu_critical: 85
+      cpu_warning: 85
+      cpu_critical: 95
       memory_warning: 75
       memory_critical: 90
       disk_warning: 80
@@ -180,12 +180,12 @@ monitoring:
 # Scanning Settings
 scanning:
   # Number of items to fetch per scan
-  mentions_count: 200
-  followers_count: 200
-  likes_count: 200
+  mentions_count: 50
+  followers_count: 50
+  likes_count: 50
   
   # Scan frequency (in minutes)
-  scan_interval: 7200  # 2 hours in seconds
+  scan_interval: 14400
   max_retries: 3
   timeout: 30
 
