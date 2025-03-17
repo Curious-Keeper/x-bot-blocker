@@ -1,162 +1,152 @@
 # X Bot Blocker
 
-Tired of all the random cornbots auto-liking your post or comments, yep, me too. 
-Here's a Python bot that automatically detects and blocks spam and bot accounts interacting with your X (Twitter) posts.
+A powerful and accurate bot detection and blocking system for X (Twitter) that protects users from automated accounts, spam, and malicious bots while maintaining high accuracy and minimal false positives.
 
 ## Features
-- **Scans interactions** (likes, comments, follows) on your X account.
-- **Analyzes accounts** for bot-like behavior using advanced detection.
-- **Automatically blocks detected bot accounts.**
-- **Logs blocked accounts** for review in `bot_blocker.log` and `blocked_users_log.csv`.
-- **Uses rate limit handling** to prevent API bans.
-- **Scheduled to run every 2 hours automatically.**
-- **Designed to run locally, on cloud services, or n8n.**
 
-## Setup Instructions
+### Core Features
+- 🔍 **Advanced Bot Detection**
+  - Profile analysis
+  - Content analysis
+  - Image analysis
+  - Pattern recognition
+  - Language detection
+  - Behavior analysis
 
-### 1. Prerequisites
-- Python 3.10+
-- Git
-- X Developer API Access (Basic Tier is sufficient)
+- 🛡️ **Protection**
+  - Automated blocking
+  - Rate limit management
+  - Whitelist/blacklist support
+  - Block history tracking
 
-### 2. Clone the Repository
+- ⚙️ **Configuration**
+  - YAML-based settings
+  - Hot-reload support
+  - Environment variables
+  - Customizable thresholds
+
+### Current Status
+- ✅ Phase 1: Foundation (Completed)
+  - Configuration Management
+  - Blocked Accounts Tracking
+  - Rate Limit Optimization
+- 🔄 Phase 2: Core Enhancement (In Progress)
+  - Enhanced Bot Detection
+  - Monitoring & Alerts
+
+## Installation
+
+1. Clone the repository:
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/x-bot-blocker.git
+git clone https://github.com/yourusername/x-bot-blocker.git
 cd x-bot-blocker
 ```
 
-### 3. Install Dependencies
+2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-If you experience issues, install dependencies manually:
+
+3. Configure environment variables:
 ```bash
-pip install tweepy schedule pandas python-dotenv requests
+cp .env.example .env
+# Edit .env with your X API credentials
 ```
 
-### 4. Check and Update Dependencies
-To check installed packages:
+4. Configure settings:
 ```bash
-pip list
-```
-To update all dependencies:
-```bash
-pip install --upgrade tweepy schedule pandas python-dotenv requests
+cp config.yaml.example config.yaml
+# Edit config.yaml with your preferences
 ```
 
-### 5. Install or Update Python (if needed)
-Check your Python version:
-```bash
-python --version
-```
-If you need to install or update Python, download it from [python.org](https://www.python.org/downloads/).
+## Usage
 
-### 6. Create a `.env` File (Security Best Practices)
-1. Inside the `x-bot-blocker` directory, create a `.env` file:
-   ```bash
-   touch .env
-   ```
-2. Open the `.env` file and add your X API keys:
-   ```
-   API_KEY=your_api_key_here
-   API_SECRET=your_api_secret_here
-   ACCESS_TOKEN=your_access_token_here
-   ACCESS_SECRET=your_access_secret_here
-   ```
-3. **Use `.env.example` as a reference** (do not commit real API keys).
-
-### 7. Run the Bot
+1. Start the bot:
 ```bash
 python x_bot_blocker.py
 ```
 
-## Deployment Options
+2. Monitor the logs:
+```bash
+tail -f bot_blocker.log
+```
 
-### Local Server Deployment
-✅ Best for testing.
-✅ No additional hosting costs.
-⚠ Requires your computer to be running.
+3. Export blocked accounts:
+```bash
+python export_blocked.py
+```
 
-### Cloud Deployment
-#### 🚀 Railway or Replit (Recommended for 24/7 Execution)
-- Fully automated.
-- Works even when your computer is off.
+## Configuration
 
-#### ⚡ GitHub Actions (For Scheduled Execution)
-- Runs on a fixed schedule.
-- No need for a separate server.
+The bot uses a YAML configuration file (`config.yaml`) for settings:
 
-### Automating Execution in n8n
-Since n8n supports HTTP requests and Python scripts, you have a couple of options:
-#### **Use an n8n Workflow with API Calls (Recommended)**
-✅ **Full automation inside n8n**
-✅ **No additional hosting required**
+```yaml
+api:
+  rate_limit:
+    max_blocks_per_day: 1000
+    cooldown_period: 60
 
-🚀 **How it works:**
-1. **Trigger Node** → Runs every 2 hours (or your preferred schedule).
-2. **HTTP Request Node** → Fetches interactions from X API.
-3. **IF Node** → Detects bot-like accounts based on predefined conditions.
-4. **HTTP Request Node** → Sends POST requests to block bots.
-5. **Write to Google Sheets or Notion** → Logs blocked accounts.
+bot_detection:
+  min_account_age_days: 30
+  min_followers: 10
+  max_following_ratio: 10
+  min_tweets: 5
+  bot_probability_threshold: 0.7
 
-🔹 **What you need:**
-- X API Keys
-- n8n instance (self-hosted or cloud)
-- Basic knowledge of n8n workflows
+scanning:
+  mentions_count: 200
+  followers_count: 200
+  likes_count: 200
+  scan_interval: 60
+```
 
-## Branching, Merging & Protection Rules
-### **🚀 GitHub Branch Protection Rules Implemented**
-To ensure code quality and security:
-- **No direct commits to `main`** → All changes require pull requests.
-- **Pull requests must be approved** before merging.
-- **Signed commits are required** to verify authorship.
-- **Force pushing is blocked** to prevent history overwrites.
-- **Merge methods allowed** → Only **squash merging** (keeps history clean).
-- **Conversations must be resolved** before merging.
+## Development
 
-### **🚀 Contribution Guidelines**
-We encourage contributions! Read our [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+### Project Structure
+```
+x-bot-blocker/
+├── config.yaml           # Configuration settings
+├── requirements.txt      # Python dependencies
+├── x_bot_blocker.py      # Main bot script
+├── config_manager.py     # Configuration management
+├── bot_detection.py      # Bot detection logic
+├── image_analysis.py     # Image analysis module
+└── blocked_accounts.csv  # Blocked accounts database
+```
 
-## Troubleshooting
-### Common Errors & Fixes
-**1. Authentication Errors**
-- Ensure your API keys are correct.
-- Verify `.env` file format.
+### Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
-**2. ModuleNotFoundError**
-- Run `pip install -r requirements.txt` to install missing dependencies.
+### Testing
+```bash
+python -m pytest tests/
+```
 
-**3. Rate Limit Errors**
-- Reduce scan frequency (e.g., every 2 hours instead of every 15 mins).
+## Documentation
 
-## Free X API Usage Guide
-If you haven't set up an X API yet:
-1. Go to [X Developer Portal](https://developer.twitter.com/).
-2. Apply for **Basic Access** (free tier).
-3. Create an **App** under your account.
-4. Retrieve your **API keys and access tokens** from the Developer Dashboard.
-5. Add these to your `.env` file.
-
-## Future Updates & Monetization
-🚀 This is the **last free version** of the X Bot Blocker. Future updates may be **paid access only**.
-- Advanced AI filtering.
-- Custom blocklist features.
-- Rate limit optimization.
-- Multi-account management.
-- Automated bot reporting to X.
-
-## Contributions
-Feel free to fork this repository and submit pull requests for improvements!
+- [Core Focus](CORE_FOCUS.md) - Project goals and scope
+- [Implementation Plan](implementation_plan.md) - Development roadmap
+- [API Documentation](docs/api.md) - API reference
+- [User Guide](docs/user_guide.md) - Usage instructions
 
 ## License
-[MIT License](LICENSE)
 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Contact
-For support or questions, please:
-- Open an [Issue](https://github.com/curious-keeper/x-bot-blocker/issues)
+## Support
 
+For support, please:
+1. Check the [documentation](docs/)
+2. Search [existing issues](issues/)
+3. Create a new issue if needed
 
----
-🚀 Happy bot-blocking!
+## Acknowledgments
 
+- X API for providing the platform
+- OpenCV for image analysis
+- LangDetect for language detection
+- All contributors and users

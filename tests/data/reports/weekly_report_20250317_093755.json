@@ -1,0 +1,49 @@
+{
+  "period": {
+    "start": "2025-03-17 09:36:36.291854",
+    "end": "2025-03-17 09:36:36.291854"
+  },
+  "summary": {
+    "total_blocks": 0,
+    "false_positives": 0,
+    "detection_accuracy": 1.0,
+    "total_api_calls": 0,
+    "error_rate": 0.0,
+    "avg_response_time": 0.0
+  },
+  "trends": {
+    "blocks_over_time": {
+      "direction": "stable",
+      "change": 0,
+      "significance": "low"
+    },
+    "accuracy_over_time": {
+      "direction": "stable",
+      "change": 0,
+      "significance": "low"
+    },
+    "error_rate_over_time": {
+      "direction": "stable",
+      "change": 0,
+      "significance": "low"
+    }
+  },
+  "resource_usage": {
+    "cpu": {
+      "avg": 28.333333333333332,
+      "max": 28.333333333333332,
+      "min": 28.333333333333332
+    },
+    "memory": {
+      "avg": 46.56666666666666,
+      "max": 46.56666666666666,
+      "min": 46.56666666666666
+    },
+    "disk": {
+      "avg": 31.399999999999995,
+      "max": 31.399999999999995,
+      "min": 31.399999999999995
+    }
+  },
+  "top_issues": []
+}
