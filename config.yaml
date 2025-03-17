@@ -15,6 +15,8 @@ bot_detection:
   max_following_ratio: 10
   min_tweets: 5
   bot_probability_threshold: 0.7
+  whitelist: []
+  blacklist: []
 
   # Image Analysis Settings
   image_analysis:
@@ -171,6 +173,9 @@ monitoring:
       enabled: true
       update_interval: 300  # 5 minutes
       port: 8080
+  enable_alerts: true
+  alert_interval: 3600  # 1 hour in seconds
+  alert_cooldown: 900  # 15 minutes in seconds
 
 # Scanning Settings
 scanning:
@@ -180,7 +185,7 @@ scanning:
   likes_count: 200
   
   # Scan frequency (in minutes)
-  scan_interval: 60
+  scan_interval: 7200  # 2 hours in seconds
   max_retries: 3
   timeout: 30
 
