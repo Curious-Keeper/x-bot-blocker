@@ -1,0 +1,15 @@
+[Unit]
+Description=X Bot Blocker Service
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/x-bot-blocker
+Environment=PYTHONPATH=/home/ubuntu/x-bot-blocker
+ExecStart=/home/ubuntu/x-bot-blocker/start_bot.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target 
