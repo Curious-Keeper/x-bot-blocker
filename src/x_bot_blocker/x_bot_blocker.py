@@ -3,6 +3,7 @@ import time
 import logging
 import os
 import signal
+import json
 from datetime import datetime
 from dotenv import load_dotenv
 from tweepy import TweepyException
@@ -62,16 +63,16 @@ if not all([API_KEY, API_SECRET, ACCESS_TOKEN, ACCESS_SECRET]):
     logging.error(error_msg)
     raise ValueError(error_msg)
 
-# Initialize Slack reporter
-slack_reporter = SlackReporter(SLACK_WEBHOOK_URL)
-
 # Authenticate with X API
 auth = tweepy.OAuthHandler(API_KEY, API_SECRET)
 auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
 api = tweepy.API(auth, wait_on_rate_limit=True)
 
-# Initialize bot detector
-bot_detector = BotDetector(api, config)
+# Initialize bot detector with config
+bot_detector = BotDetector(api, config_path="config.yaml")
+
+# Initialize Slack reporter
+slack_reporter = SlackReporter(SLACK_WEBHOOK_URL)
 
 # Initialize KPI tracking
 kpi_stats = {
@@ -81,6 +82,24 @@ kpi_stats = {
     'errors': [],
     'last_scan_time': None
 }
+
+def save_metrics():
+    """Save current metrics to JSON file"""
+    try:
+        # Get the project root directory (two levels up from this file)
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        data_dir = os.path.join(project_root, 'data')
+        
+        # Ensure data directory exists
+        os.makedirs(data_dir, exist_ok=True)
+        
+        # Save metrics to file
+        metrics_file = os.path.join(data_dir, 'metrics.json')
+        with open(metrics_file, 'w') as f:
+            json.dump(kpi_stats, f, indent=2)
+        logging.info(f"Metrics saved to {metrics_file}")
+    except Exception as e:
+        logging.error(f"Error saving metrics: {str(e)}")
 
 def handle_rate_limit(e: TweepyException):
     """Handle rate limit errors"""
@@ -106,18 +125,15 @@ def scan_and_block():
         kpi_stats['last_scan_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S EST")
         
         logging.info("Getting recent mentions...")
-        # Use mentions_timeline instead of get_users_mentions
         mentions = api.mentions_timeline(count=200)
         
         for mention in mentions:
-            user_id = str(mention.user.id)  # Convert to string explicitly
+            user_id = str(mention.user.id)
             
-            # Check if user should be blocked
             should_block, reason = bot_detector.should_block(user_id)
             
             if should_block:
                 try:
-                    # Block the user
                     api.create_block(user_id=user_id)
                     kpi_stats['total_blocks'] += 1
                     logging.info(f"Blocked user {user_id}: {reason}")
@@ -126,7 +142,10 @@ def scan_and_block():
                     logging.error(error_msg)
                     kpi_stats['errors'].append(error_msg)
         
-        # Calculate accuracy (for MVP, we'll assume all blocks are correct)
+        # Save metrics after scan
+        save_metrics()
+        
+        # Calculate accuracy
         accuracy = 100.0 if kpi_stats['total_blocks'] > 0 else 0.0
         
         # Send daily report
@@ -135,7 +154,7 @@ def scan_and_block():
             'false_positives': kpi_stats['false_positives'],
             'accuracy': accuracy,
             'api_calls': kpi_stats['api_calls'],
-            'errors': kpi_stats['errors'][-3:]  # Last 3 errors
+            'errors': kpi_stats['errors'][-3:]
         })
         
     except TweepyException as e:
@@ -144,7 +163,7 @@ def scan_and_block():
         error_msg = f"Error in scan_and_block: {str(e)}"
         logging.error(error_msg)
         kpi_stats['errors'].append(error_msg)
-        slack_reporter.send_restart_failure_notification(error_msg)  # Notify on scan errors
+        slack_reporter.send_restart_failure_notification(error_msg)
 
 def send_weekly_summary():
     """Send weekly summary report"""
