@@ -86,12 +86,18 @@ kpi_stats = {
 def save_metrics():
     """Save current metrics to JSON file"""
     try:
+        # Get the project root directory (two levels up from this file)
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        data_dir = os.path.join(project_root, 'data')
+        
         # Ensure data directory exists
-        os.makedirs('data', exist_ok=True)
+        os.makedirs(data_dir, exist_ok=True)
         
         # Save metrics to file
-        with open('data/metrics.json', 'w') as f:
+        metrics_file = os.path.join(data_dir, 'metrics.json')
+        with open(metrics_file, 'w') as f:
             json.dump(kpi_stats, f, indent=2)
+        logging.info(f"Metrics saved to {metrics_file}")
     except Exception as e:
         logging.error(f"Error saving metrics: {str(e)}")
 

@@ -10,11 +10,11 @@ api:
 # Bot Detection Settings
 bot_detection:
   # Thresholds
-  min_account_age_days: 30
-  min_followers: 10
-  max_following_ratio: 10
-  min_tweets: 5
-  bot_probability_threshold: 0.7
+  min_account_age_days: 7
+  min_followers: 5
+  max_following_ratio: 5
+  min_tweets: 3
+  bot_probability_threshold: 0.6
   whitelist: []
   blacklist: []
 
@@ -180,12 +180,12 @@ monitoring:
 # Scanning Settings
 scanning:
   # Number of items to fetch per scan
-  mentions_count: 50
-  followers_count: 50
-  likes_count: 50
+  mentions_count: 200
+  followers_count: 200
+  likes_count: 200
   
   # Scan frequency (in minutes)
-  scan_interval: 14400
+  scan_interval: 15
   max_retries: 3
   timeout: 30
 

@@ -3,24 +3,54 @@ import requests
 import logging
 from datetime import datetime
 from typing import Dict, List, Optional
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 class SlackReporter:
     def __init__(self, webhook_url: str):
         self.webhook_url = webhook_url
         self.logger = logging.getLogger('slack_reporting')
+        
+        # Configure retry strategy
+        retry_strategy = Retry(
+            total=3,  # number of retries
+            backoff_factor=1,  # wait 1, 2, 4 seconds between retries
+            status_forcelist=[500, 502, 503, 504],  # HTTP status codes to retry on
+        )
+        
+        # Create a session with retry strategy
+        self.session = requests.Session()
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session.mount("https://", adapter)
+        self.session.mount("http://", adapter)
 
     def _send_message(self, message: Dict) -> bool:
-        """Send a message to Slack"""
+        """Send a message to Slack with retry logic"""
         if not self.webhook_url:
             self.logger.error("Slack webhook URL not configured")
             return False
             
         try:
-            response = requests.post(self.webhook_url, json=message)
+            self.logger.info(f"Attempting to send Slack message: {message.get('blocks', [{}])[0].get('text', {}).get('text', 'Unknown message type')}")
+            # Set a reasonable timeout
+            response = self.session.post(
+                self.webhook_url, 
+                json=message,
+                timeout=(5, 10)  # (connect timeout, read timeout)
+            )
             response.raise_for_status()
+            self.logger.info("Successfully sent Slack message")
             return True
-        except Exception as e:
+        except requests.exceptions.Timeout:
+            self.logger.error("Timeout while sending message to Slack")
+            return False
+        except requests.exceptions.ConnectionError as e:
+            self.logger.error(f"Connection error while sending message to Slack: {str(e)}")
+            return False
+        except requests.exceptions.RequestException as e:
             self.logger.error(f"Failed to send message to Slack: {str(e)}")
+            if hasattr(e.response, 'text'):
+                self.logger.error(f"Slack API response: {e.response.text}")
             return False
 
     def send_daily_report(self, stats: Dict) -> None:

@@ -8,13 +8,12 @@ class ConfigManager:
     def __init__(self, config_path: str = "config.yaml"):
         # Get the project root directory (two levels up from this file)
         self.project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        # Convert config_path to absolute path if it's relative
-        if not os.path.isabs(config_path):
-            config_path = os.path.join(self.project_root, config_path)
-        self.config_path = config_path
+        # Always use absolute path for config file
+        self.config_path = os.path.join(self.project_root, config_path) if not os.path.isabs(config_path) else config_path
         self.config: Dict[str, Any] = {}
         self.last_modified: float = 0
         self.load_config()
+        logging.info(f"Using config file at: {self.config_path}")
 
     def load_config(self) -> None:
         """Load configuration from YAML file."""

@@ -43,7 +43,10 @@ def read_recent_logs():
 @lru_cache(maxsize=1)
 def get_bot_metrics():
     """Get current bot metrics"""
-    metrics_file = 'data/metrics.json'
+    # Get the project root directory (two levels up from this file)
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    metrics_file = os.path.join(project_root, 'data', 'metrics.json')
+    
     try:
         with open(metrics_file, 'r') as f:
             return json.load(f)
