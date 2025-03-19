@@ -85,6 +85,13 @@ class SlackReporter:
                             "text": f"*API Calls:*\n{stats['api_calls']}"
                         }
                     ]
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"*API Status:*\n{stats['api_status']}\n*Last Scan:* {stats['last_scan']}"
+                    }
                 }
             ]
         }

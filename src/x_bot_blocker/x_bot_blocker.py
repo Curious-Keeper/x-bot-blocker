@@ -80,7 +80,13 @@ kpi_stats = {
     'false_positives': 0,
     'api_calls': 0,
     'errors': [],
-    'last_scan_time': None
+    'last_scan_time': None,
+    'api_status': {
+        'rate_limits_hit': 0,
+        'last_rate_limit': None,
+        'connection_errors': 0,
+        'last_error': None
+    }
 }
 
 def save_metrics():
@@ -103,20 +109,59 @@ def save_metrics():
 
 def handle_rate_limit(e: TweepyException):
     """Handle rate limit errors"""
+    kpi_stats['api_status']['rate_limits_hit'] += 1
+    kpi_stats['api_status']['last_rate_limit'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S EST")
+    
     if hasattr(e, 'reset_time'):
         reset_time = datetime.fromtimestamp(e.reset_time).strftime("%Y-%m-%d %H:%M:%S EST")
         slack_reporter.send_rate_limit_notification(str(e), reset_time)
         logging.warning(f"Rate limit hit. Resets at {reset_time}")
-        time.sleep(e.reset_time - time.time())
+        wait_time = e.reset_time - time.time()
+        if wait_time > 0:
+            time.sleep(wait_time)
     else:
         logging.warning("Rate limit hit. Waiting 15 minutes...")
         time.sleep(900)  # Wait 15 minutes
+    
+    # After waiting, try to continue operation
+    logging.info("Resuming operation after rate limit wait")
 
 def handle_shutdown(signum, frame):
     """Handle shutdown signals"""
     logging.info("Shutdown signal received")
     slack_reporter.send_shutdown_notification("Received shutdown signal")
     exit(0)
+
+def send_daily_report():
+    """Send daily KPI report"""
+    try:
+        # Calculate accuracy
+        accuracy = 100.0 if kpi_stats['total_blocks'] > 0 else 0.0
+        
+        # Prepare API status message
+        api_status = "✅ Normal"
+        if kpi_stats['api_status']['rate_limits_hit'] > 0:
+            api_status = f"⚠️ Rate limits hit: {kpi_stats['api_status']['rate_limits_hit']} times"
+        if kpi_stats['api_status']['connection_errors'] > 0:
+            api_status = f"❌ Connection errors: {kpi_stats['api_status']['connection_errors']} times"
+        
+        # Send daily report
+        slack_reporter.send_daily_report({
+            'total_blocks': kpi_stats['total_blocks'],
+            'false_positives': kpi_stats['false_positives'],
+            'accuracy': accuracy,
+            'api_calls': kpi_stats['api_calls'],
+            'api_status': api_status,
+            'last_scan': kpi_stats['last_scan_time'],
+            'errors': kpi_stats['errors'][-3:]
+        })
+        
+        # Reset daily counters
+        kpi_stats['api_status']['rate_limits_hit'] = 0
+        kpi_stats['api_status']['connection_errors'] = 0
+        
+    except Exception as e:
+        logging.error(f"Error sending daily report: {str(e)}")
 
 def scan_and_block():
     """Main scanning and blocking function"""
@@ -125,12 +170,24 @@ def scan_and_block():
         kpi_stats['last_scan_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S EST")
         
         logging.info("Getting recent mentions...")
-        mentions = api.mentions_timeline(count=200)
+        try:
+            mentions = api.mentions_timeline(count=200)
+        except TweepyException as e:
+            if "Rate limit" in str(e):
+                handle_rate_limit(e)
+                return  # Skip this scan, will retry on next scheduled run
+            raise  # Re-raise if it's not a rate limit error
         
         for mention in mentions:
             user_id = str(mention.user.id)
             
-            should_block, reason = bot_detector.should_block(user_id)
+            try:
+                should_block, reason = bot_detector.should_block(user_id)
+            except TweepyException as e:
+                if "Rate limit" in str(e):
+                    handle_rate_limit(e)
+                    continue  # Skip this user, continue with next
+                raise  # Re-raise if it's not a rate limit error
             
             if should_block:
                 try:
@@ -138,31 +195,34 @@ def scan_and_block():
                     kpi_stats['total_blocks'] += 1
                     logging.info(f"Blocked user {user_id}: {reason}")
                 except TweepyException as e:
+                    if "Rate limit" in str(e):
+                        handle_rate_limit(e)
+                        continue  # Skip this block, continue with next user
                     error_msg = f"Error blocking user {user_id}: {str(e)}"
                     logging.error(error_msg)
                     kpi_stats['errors'].append(error_msg)
+                    kpi_stats['api_status']['connection_errors'] += 1
+                    kpi_stats['api_status']['last_error'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S EST")
         
         # Save metrics after scan
         save_metrics()
         
-        # Calculate accuracy
-        accuracy = 100.0 if kpi_stats['total_blocks'] > 0 else 0.0
-        
-        # Send daily report
-        slack_reporter.send_daily_report({
-            'total_blocks': kpi_stats['total_blocks'],
-            'false_positives': kpi_stats['false_positives'],
-            'accuracy': accuracy,
-            'api_calls': kpi_stats['api_calls'],
-            'errors': kpi_stats['errors'][-3:]
-        })
-        
     except TweepyException as e:
-        handle_rate_limit(e)
+        if "Rate limit" in str(e):
+            handle_rate_limit(e)
+        else:
+            error_msg = f"Error in scan_and_block: {str(e)}"
+            logging.error(error_msg)
+            kpi_stats['errors'].append(error_msg)
+            kpi_stats['api_status']['connection_errors'] += 1
+            kpi_stats['api_status']['last_error'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S EST")
+            slack_reporter.send_restart_failure_notification(error_msg)
     except Exception as e:
         error_msg = f"Error in scan_and_block: {str(e)}"
         logging.error(error_msg)
         kpi_stats['errors'].append(error_msg)
+        kpi_stats['api_status']['connection_errors'] += 1
+        kpi_stats['api_status']['last_error'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S EST")
         slack_reporter.send_restart_failure_notification(error_msg)
 
 def send_weekly_summary():
@@ -187,6 +247,9 @@ scan_interval = config.get('scanning.scan_interval', 60)
 
 # Schedule the bot to run based on config
 schedule.every(scan_interval).minutes.do(scan_and_block)
+
+# Schedule daily report at 00:00
+schedule.every().day.at("00:00").do(send_daily_report)
 
 # Schedule weekly report
 schedule.every().monday.at("00:00").do(send_weekly_summary)

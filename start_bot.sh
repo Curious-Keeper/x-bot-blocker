@@ -56,13 +56,41 @@ echo "💡 To stop services: kill \$(cat bot.pid) \$(cat status.pid)"
 while true; do
     if ! kill -0 $BOT_PID 2>/dev/null; then
         echo "❌ Bot process died. Restarting..."
+        # Kill the status server
         kill $STATUS_PID 2>/dev/null
-        exit 1
+        
+        # Start the bot again
+        echo "🤖 Restarting X Bot Blocker..."
+        nohup python3 src/x_bot_blocker/x_bot_blocker.py > bot_blocker.log 2>&1 &
+        BOT_PID=$!
+        echo $BOT_PID > bot.pid
+        
+        # Wait a moment for the bot to initialize
+        sleep 5
+        
+        # Start the status server again
+        echo "📊 Restarting Status Server..."
+        nohup python3 src/x_bot_blocker/status_server.py > status_server.log 2>&1 &
+        STATUS_PID=$!
+        echo $STATUS_PID > status.pid
+        
+        echo "✅ Services restarted successfully!"
+        echo "📋 New Bot PID: $BOT_PID"
+        echo "📋 New Status Server PID: $STATUS_PID"
     fi
     if ! kill -0 $STATUS_PID 2>/dev/null; then
         echo "❌ Status server died. Restarting..."
+        # Kill the bot
         kill $BOT_PID 2>/dev/null
-        exit 1
+        
+        # Start the status server again
+        echo "📊 Restarting Status Server..."
+        nohup python3 src/x_bot_blocker/status_server.py > status_server.log 2>&1 &
+        STATUS_PID=$!
+        echo $STATUS_PID > status.pid
+        
+        echo "✅ Status Server restarted successfully!"
+        echo "📋 New Status Server PID: $STATUS_PID"
     fi
     sleep 5
 done 

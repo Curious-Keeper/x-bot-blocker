@@ -8,6 +8,8 @@ User=ubuntu
 WorkingDirectory=/home/ubuntu/x-bot-blocker
 Environment=PYTHONPATH=/home/ubuntu/x-bot-blocker
 ExecStart=/home/ubuntu/x-bot-blocker/start_bot.sh
+ExecStop=/home/ubuntu/x-bot-blocker/stop_bot.sh
+TimeoutStopSec=30
 Restart=always
 RestartSec=10
 
